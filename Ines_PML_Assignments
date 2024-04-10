@@ -1,1 +1,154 @@
+#Assignment 5 Tensorflow code
+
+import tensorflow as tf
+from tensorflow.keras import layers, models, optimizers
+from sklearn.datasets import load_iris, load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+import numpy as np
+
+CREATE_CLASS = True  # Create class from scratch; otherwise use nn.Sequential to create the class
+SGD = False  # SGD or Adam
+IRIS = False  # iris or mnist
+SHOW = False  # returns picture of digit for mnist
+
+# Load Iris dataset
+if IRIS:
+    examples = load_iris()
+else:
+    examples = load_digits()  # https://scikit-learn.org/stable/auto_examples/classification/plot_digits_classification.html; 10 digits;  1797 examples
+    if SHOW:
+        idx = np.random.randint(0, len(examples.target))
+        print(examples.data[idx])
+        print(examples.data[idx].reshape(8, 8))
+        print(examples.target[idx])
+        plt.matshow(examples.data[idx].reshape(8, 8), cmap=plt.cm.gray_r)
+        plt.show()
+
+X = examples.data
+y = examples.target
+
+# Splitting data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Convert numpy arrays to TensorFlow tensors
+X_train_tensor = tf.convert_to_tensor(X_train, dtype=tf.float32)
+X_test_tensor = tf.convert_to_tensor(X_test, dtype=tf.float32)
+y_train_tensor = tf.convert_to_tensor(y_train, dtype=tf.int64)
+y_test_tensor = tf.convert_to_tensor(y_test, dtype=tf.int64)
+
+# Instantiate the model
+input_size = X_train_tensor.shape[1]
+hidden_size = 8
+output_size = len(examples.target_names)
+batch_size = 150
+num_epochs = 500
+# Optimizer specific options
+learning_rate = 0.01
+regularization_param = 0.001
+momentum_param = 0.9
+# Dropout: if p>0
+dropout_p = 0  # During training, randomly zeroes some of the elements of the input tensor with probability p.
+
+# Create dataloader which makes it easier to use mini batches
+train_ds = tf.data.Dataset.from_tensor_slices((X_train_tensor, y_train_tensor)).shuffle(buffer_size=1000).batch(batch_size)
+
+########################################################### NN model
+if CREATE_CLASS:
+    # Create model, first defining the class with a call method
+    class ThreeLayerNet(tf.keras.Model):
+        def __init__(self, input_size, hidden_size, output_size):
+            super(ThreeLayerNet, self).__init__()
+            self.fc1 = layers.Dense(hidden_size, activation='relu')
+            self.dropout1 = layers.Dropout(dropout_p)
+            self.fc2 = layers.Dense(hidden_size, activation='relu')
+            self.dropout2 = layers.Dropout(dropout_p)
+            self.fc3 = layers.Dense(output_size)
+
+        def call(self, x):
+            x = self.fc1(x)
+            x = self.dropout1(x)
+            x = self.fc2(x)
+            x = self.dropout2(x)
+            return self.fc3(x)
+
+    model = ThreeLayerNet(input_size, hidden_size, output_size)
+else:
+    # Or, in alternative, use Sequential API
+    model = models.Sequential([
+        layers.Dense(hidden_size, activation='relu', input_shape=(input_size,)),
+        layers.Dropout(dropout_p),
+        layers.Dense(hidden_size, activation='relu'),
+        layers.Dropout(dropout_p),
+        layers.Dense(output_size)
+    ])
+
+####################################################################################################
+# Define loss function and optimizer
+# Either SparseCategoricalCrossentropy or CategoricalCrossentropy can be used
+loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
+if SGD:
+    optimizer = optimizers.SGD(learning_rate=learning_rate, momentum=momentum_param, nesterov=True)
+else:
+    optimizer = optimizers.Adam(learning_rate=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+
+# Lists to store train and test losses
+train_losses = []
+test_losses = []
+
+# Training the model
+for epoch in range(num_epochs):
+    train_loss = 0.0
+    for x_batch, y_batch in train_ds:
+        # Forward pass
+        with tf.GradientTape() as tape:
+            pred = model(x_batch, training=True)  # Forward pass
+            loss = loss_fn(y_batch, pred)  # Compute loss
+
+        # Backward pass and optimization
+        gradients = tape.gradient(loss, model.trainable_variables)  # Compute gradients
+        optimizer.apply_gradients(zip(gradients, model.trainable_variables))  # Apply gradients
+
+        train_loss += loss
+
+    train_loss /= len(train_ds)
+    train_losses.append(train_loss)
+
+    # Test the model
+    test_logits = model(X_test_tensor, training=False)
+    test_loss = loss_fn(y_test_tensor, test_logits)
+    test_losses.append(test_loss)
+
+    if (epoch + 1) % 100 == 0:
+        print(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.4f}, Test Loss: {test_loss:.4f}')
+
+# Plotting train and test losses
+plt.plot(range(num_epochs), train_losses, label='Train Loss')
+plt.plot(range(num_epochs), test_losses, label='Test Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Train and Test Losses')
+plt.legend()
+plt.show()
+
+# Testing the model
+test_logits = model(X_test_tensor, training=False)
+predicted = tf.argmax(test_logits, axis=1).numpy()
+actual = y_test_tensor.numpy()
+accuracy = accuracy_score(actual, predicted)
+print(f'Accuracy on test set: {accuracy:.4f}')
+cm = confusion_matrix(actual, predicted)
+labels = np.unique(actual)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+disp.plot()
+plt.show()
+
 
