@@ -4,7 +4,7 @@ Links and exercises for the course Practical Machine Learning, Green Data Scienc
 ---
 Instructor: Manuel Campagnolo, ISA/ULisboa
 
-The course will follow a flipped classroom model. Work outside class will be based on a range of Machine Learning resources including the book *Sebastian Raschka, Yuxi (Hayden) Liu, and Vahid Mirjalili. Machine Learning with PyTorch and Scikit-Learn. Packt Publishing, 2022* and the [Practical Deep Learning course](https://course.fast.ai/) for higher level programming. During classes, the notebooks (Python code) will be run on Google Colab.
+The course will follow a flipped classroom model. Work outside class will be based on a range of Machine Learning resources including the book *Sebastian Raschka, Yuxi (Hayden) Liu, and Vahid Mirjalili. Machine Learning with PyTorch and Scikit-Learn. Packt Publishing, 2022*. During classes, the notebooks (Python code) will be run on Google Colab.
 
 Links for class resources:
   - [Fenix webpage](https://fenix.isa.ulisboa.pt/courses/aaap-283463546570956). Academic page, where final results will be posted.
@@ -114,15 +114,19 @@ In this session, we improve on the model used in the previous session for the `M
 <details markdown="block">
 <summary> Transfer learning (April 24, 2024): using and fine-tuning pre-trained models</summary>
 
-We have seen how machine learning models are created and trained with PyTorch. However, when applying our model (e.g. a CNN) to a bigger data set (e.f. CIFAR10) we encounter several problems like: 
+We have seen how machine learning models are created and trained with PyTorch. However, when applying our model (e.g. a CNN) to a larger data set (e.f. CIFAR10) we encounter several problems like: 
 1. the accuracy is low because the model is not good enough,
 2. training from scratch requires a lot of computational resources.
 
-Similarly to the first session (*Introduction*) where we discussed a short script using the high level package `fastai` to implement a pre-trained convolutional neural network and apply it to classify images downloaded from the internet, we will adapt the code we discussed earlier to read and improve a pre-trained model. Here, we will see how to access a pre-trained model in PyTorch, and fine-tuned it to our data set. This will address both concerns listed above.
+Similarly to the first session (*Introduction*) where we discussed a short script using the high level package `fastai` to implement a pre-trained convolutional neural network and apply it to classify images downloaded from the internet, we will adapt the code we discussed earlier to read and improve a pre-trained model called `Resnet18`. Here, we will see how to access a pre-trained model in PyTorch, and fine-tuned it to our data set. This will address both concerns listed above.
 
-- **Assignment #7**:
-  - to do
-  - Each student should create a video (3' maximum) explaning how .... Submit the video and the link to the following files in their GitHub repository:
+- Transfer learning: watch [video bt Andrew Ng](https://www.youtube.com/watch?v=yofjFQddwHE); discuss with an example how to adapt and fine tune a `Resnet18` model to classify the CIFAR-10 data set.
+
+- **Assignment #7** (identification of corn diseases):
+  - Read carefully the notebook  [corn leaf disease](https://www.kaggle.com/code/emrearslan123/corn-leaf-disease-detection-with-resnet-pytorch) which classifies with high precision images of corn leaves into 4 classes: *Blight*, *Common_Rust*, *Gray_Leaf_Spot* and *Healthy*;
+  - Implement that code or some similar code either on Colab or on your own machine and compare the your results with the results reported in the notebook for the same *corn diseases* data set; If you're not able to run it on GPU on Colab, you might try to run it on CPU on your own laptop/desktop for a few epochs;
+  - You need to include an instruction in your code to save the model like `torch.save(model.state_dict(), "model.pth")` in the notebook above (or you can save it in a different format like the *pickle* format with extension `.pkl`), so the trained model can be re-used later;
+  - Create a video (3' approx) explaning the main novelties in the code in comparison to what has been already discussed in class and possibly the difficulties you ran into. In particular, focus on the following aspects: reading and organizing data; pre-processing data before deep learning; original image size; adapting the Resnet18 to the problem at hand; moving data and model to the computing device; saving the model; discuss results and computational requirements. Submit the video the link to your script either in your GitHub repository or on Colab; report your estimated precision (you can just copy/paste the output of `classification_report(test.targets, all_preds)`).
   - Submission deadline: Wednesday, May 1st.
 
 </details>
@@ -130,10 +134,53 @@ Similarly to the first session (*Introduction*) where we discussed a short scrip
 <details markdown="block">
 <summary> Production (May 3, 2024): saving and deploying models with gradio</summary>
 
-- **Assignment #8**:
-  - Create your own Hugging Face Place to deploy a classification model your created.
-  - Each student should create a video (3' maximum) explaning how they saved their model, and how they used `gradio` for deployment, and the files and application in their Hugging Face Place. Submit the video and the link to the following files in their GitHub repository: (1) python code that creates and saves the model; (2) python script using gradio for the deployment; (3) URL of the Hugging Face Place where the model is deployed.
-  - Submission deadline: Wednesday, May 1st.
+
+- Discussion of *assignment #7*. Check the proposed [Colab notebook for the problem](corn_leaf_disease_detection_with_resnet_pytorch.ipynb). In particular, it was discussed how to save the deep learning model so it can be deployed.
+- Create your own Hugging Face space;
+- Create an interactive app that runs locally and can also be deployed on your Hugging Face space that reads an image and returns the size of that image;
+- How to create an app on Hugging Face spaces for the deployment of the classifier trained and saved in *assignment #7*. See code in [Overview notebook](https://github.com/isa-ulisboa/greends-pml/blob/main/ML_overview_with_examples.ipynb). Check also the links included in that notebook about deploying models with `Gradio`.
+- **Assignment #8**: 
+  - Each student should create a video (3' maximum) explaning how they saved their model, and how they used `gradio` and Hugging Face spaces for deployment. Submit the video and the link to your public Hugging Face space repository where files can be read, i.e. a link like (https://huggingface.co/spaces/mcampagnolo/test2024/tree/main). It is expected that you explain how you obtained the model file and the other files you had to upload to Hugging Face, and which files had to be created so your app would run. You are encouraged to make changes on your app to improve it. Submission deadline: Wednesday, May 8st.
+</details>
+
+
+<details markdown="block">
+<summary> Tabular data (May 10, 2024): preprocess tabular data</summary>
+
+
+- Discussion of  *assignment #7* and *assignment #8*.
+- Brief discussion about (not free) platforms for machine learning (ML) like [Vertex AI](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform),  [MS Azure](https://azure.microsoft.com/en-us/products/machine-learning), [AWS Sagemaker](https://aws.amazon.com/sagemaker/), etc.
+- Tabular data:
+  - Pre-processing with `pandas`and `sklearn`: See Chap 4 notebook at [https://github.com/rasbt/machine-learning-book/](https://github.com/rasbt/machine-learning-book/) and an application to the *Wine* data set [https://archive.ics.uci.edu/dataset/109/wine](https://archive.ics.uci.edu/dataset/109/wine).
+  -  *Wine quality* data set [https://archive.ics.uci.edu/dataset/186/wine+quality](https://archive.ics.uci.edu/dataset/186/wine+quality) with two different response variables: color (white or red) and quality (score between 0 and 10). Explore the data as in the *Wine*  example.
+</details>
+
+<details markdown="block">
+<summary> Feature engineering and data visualization (May 17, 2024): t-SNE, UMAP, processing pipeline</summary>
+  
+- Final projet description
+- Discuss *Script to apply dimensionality reduction techniques t-SNE, UMAP and LDA to several data sets*  in the [Overview notebook](https://github.com/isa-ulisboa/greends-pml/blob/main/ML_overview_with_examples.ipynb)
+- Pre-processing and feature engineering with `sklearn`. See example [here](https://scikit-learn.org/stable/auto_examples/inspection/plot_permutation_importance.html) with the  `titanic` data set.
+- Processing pipelines: See Chap 6 notebook at [https://github.com/rasbt/machine-learning-book/](https://github.com/rasbt/machine-learning-book/)
+- Brief description of the *decision tree* classifier.
+  
+</details>
+
+<details markdown="block">
+<summary> Random forests (May 23, 2024)</summary>
+  
+- Decision trees: see corresponding section in the [Overview notebook](https://github.com/isa-ulisboa/greends-pml/blob/main/ML_overview_with_examples.ipynb)
+- Ensemble methods and random forests: see corresponding section in the [Overview notebook](https://github.com/isa-ulisboa/greends-pml/blob/main/ML_overview_with_examples.ipynb)
+- **Assignment #9**:
+  - Consider the *wine quality data set*, where the response variable is *quality* and both red and white wines are included in the data set;
+  - The goal is to predict the quality from the explanatory variables;
+  - You can preprocess the data and perform feature engineering;
+  - The goal is to develop a classifier with overall accuracy over the test set larger than 55% for the problem using all the original quality classes;
+  - You should exhibit and discuss the confusion matrix over the test set;
+  - You should also show and discuss a plot that shows how the overal accuracy varies with some parameter like `max_depth`, `max_leaf_nodes` or another parameter designed to avoid overfitting
+  - Create a video (3' approx.) describing your script and your results according and submit the video and the link to the file in your GitHub repository where the script is available (Submission deadline: Thursday, May 30th, 2pm)
+
+  
 </details>
 
 ---
